@@ -139,6 +139,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lorem_ipsum.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="vigenere_cipher.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lorem_ipsum.h" />
+    <ClInclude Include="misc_utils.h" />
+    <ClInclude Include="text_utils.h" />
+    <ClInclude Include="vigenere_cipher.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
