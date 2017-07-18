@@ -165,22 +165,22 @@ void for_each_uniq_pair(It begin, It end, Pred pred) {
 
 int gcd(int num1, int num2)
 {
-	bool found = false;
-	int test = 0;
+bool found = false;
+int test = 0;
 
-	if (std::abs(num1) < std::abs(num2))
-		test = std::abs(num1);
-	else
-		test = std::abs(num2);
+if (std::abs(num1) < std::abs(num2))
+	test = std::abs(num1);
+else
+test = std::abs(num2);
 
-	while (num1%test != 0 || num2%test != 0)  //If the number divides evenly into both.
-	{
-		--test;
-	}
-
-	return test;
+while (num1%test != 0 || num2%test != 0)  //If the number divides evenly into both.
+{
+	--test;
 }
-std::set<int> divisors(int num, int start=3)
+
+return test;
+}
+std::set<int> divisors(int num, int start = 3)
 {
 	std::set<int> s;
 	for (int i = start; i <= num; ++i) {
@@ -199,10 +199,8 @@ int main()
 	english_case_less en;
 	std::string common_text(common_english_text);
 	std::string common_text_only_alphabet;
-	std::string hamlet_encoded;
-	std::string hamlet_encoded_only_alphabet_chars;
 	std::string hamlet_orig(hamlet);
-	std::string hamlet_key("hello");
+	std::string hamlet_key("key");
 	std::copy_if(common_text.begin(),
 		common_text.end(),
 		std::back_inserter(common_text_only_alphabet),
@@ -216,21 +214,31 @@ int main()
 	auto en_letter_count = count_letter_occurence(common_text_only_alphabet, 1, 0, en);
 	std::vector<double>  en_letter_freq(en.size());
 	double total_letters_freq = 0;
-	std::cout << "Common English letters frequeies:"<< std::endl;
+	std::cout << "Common English letters frequeies:" << std::endl;
 
-	for (size_t i = 0; i < en_letter_count.frequencies.size(); ++i) { 
-		en_letter_freq[i] = double(en_letter_count.frequencies[i])/double(en_letter_count.text_letters_count);
-		cout << "\t" <<en.letter_from_index(i) << ": " << en_letter_freq[i] << endl;
+	for (size_t i = 0; i < en_letter_count.frequencies.size(); ++i) {
+		en_letter_freq[i] = double(en_letter_count.frequencies[i]) / double(en_letter_count.text_letters_count);
+		cout << "\t" << en.letter_from_index(i) << ": " << en_letter_freq[i] << endl;
 		total_letters_freq += en_letter_freq[i];
 	}
 	cout << string(100, '-') << endl;
 
 	vector<int> key_numbers(hamlet_key.length());
 	for (size_t i = 0; i < hamlet_key.length(); ++i) { key_numbers[i] = en.index_from_letter(hamlet_key[i]); }
-	std::cout << "Actual Key: |"<< hamlet_key.length()<<"| '" << hamlet_key<< "' " << key_numbers << std::endl;
+	std::cout << "Actual Key: |" << hamlet_key.length() << "| '" << hamlet_key << "' " << key_numbers << std::endl;
+
+
 	cout << string(100, '-') << endl;
+	
+	bool key_found = false;
+	size_t found_key_length = 0;
+	size_t max_key_length = 12;
+
+
 	auto end = hamlet_orig.end();
-	//advance(end, 100);
+	std::string hamlet_encoded;
+	std::string hamlet_encoded_only_alphabet_chars;
+
 	encrypt_vigenere(hamlet_key,
 		hamlet_orig.begin(),
 		end,
@@ -240,137 +248,88 @@ int main()
 		hamlet_encoded.end(),
 		std::back_inserter(hamlet_encoded_only_alphabet_chars),
 		[&en](const char& ch) {
-			return en.contains(ch);
+		return en.contains(ch);
+	}
+	);
+
+	std::cout << "Text length: " << hamlet_encoded_only_alphabet_chars.length() << endl;
+	size_t found_key_length1 = guess_key_length_ci(cout, hamlet_encoded_only_alphabet_chars, ci_en, max_key_length, en);
+	size_t found_key_length2 = guess_key_length_by_shifted_coincedences(cout, hamlet_encoded_only_alphabet_chars, max_key_length, en);
+	//std::cout << " Possible key lengths: " << found_key_length1 << " (most common diviser of the best CI) " << found_key_length2 << " (most common diviser of most coincedence periods)" << endl;
+	std::cout << " Possible key lengths: " << found_key_length1 << "  " << found_key_length2;
+
+	if (found_key_length1 && found_key_length2) {
+
+		found_key_length = gcd(found_key_length1, found_key_length2);
+
+		//std::cout << "Key length: " << gcd(found_key_length1, found_key_length2) << " (most common diviser of posiible key 1 and possible key 2)" << endl;
+
+		if (found_key_length == hamlet_key.length()) {
+			std::cout << " found propper Key length = " << found_key_length;
+			key_found = true;
 		}
-		);
+		else {
+			std::cout << " found wrong Key length = " << found_key_length;
 
-	//auto text_occ = get_ngram_positions(3, hamlet_encoded_only_alphabet_chars, en);
+		}
+	}
+	else {
+		std::cout << " cant guess Key length";
+	}
+	std::cout << endl;
 
-	//auto fl_map = flat_freq_to_freq_dict(text_occ.frequencies, text_occ.sequence_length, text_occ.alphabet);
-	//std::map<std::string, std::set<size_t>> distances_by_ngrams;
-	//std::map<std::string, std::set<size_t>> gdc_distances_by_ngrams;
-	//auto end_at_30perc = fl_map.begin();
-	//std::advance(end_at_30perc, 2);
-	//for (auto it = fl_map.begin(); it != end_at_30perc; ++it) {
-	//	for (const std::string& ngram : it->second) {
-	//		size_t flat_idx = en.flat_index_from_ngram(ngram);
+	if (key_found) {
+		auto key = guess_key(cout, hamlet_encoded_only_alphabet_chars, found_key_length, en_letter_freq, en);
+		std::cout << " guess Key: " << key << endl;
+	}
+	
+	//for (size_t min_guessable_text_length = hamlet_key.length(); min_guessable_text_length < hamlet_orig.length()/2 && !key_found; ++min_guessable_text_length) {
+	//	auto end = hamlet_orig.begin();
+	//	advance(end, min_guessable_text_length);
+	//	std::string hamlet_encoded;
+	//	std::string hamlet_encoded_only_alphabet_chars;
 
-	//		//for (std::vector<unsigned int>::iterator iter1 = text_occ.occurence[flat_idx].begin(),
-	//		//	iter2 = text_occ.occurence[flat_idx].begin() + 1;
-	//		//	iter2 != text_occ.occurence[flat_idx].end(); 
-	//		//	++iter1, ++iter2) {
-	//		//	distances_by_ngrams[ngram].insert(std::abs((int)*iter2 - (int)*iter1));
+	//	encrypt_vigenere(hamlet_key,
+	//		hamlet_orig.begin(),
+	//		end,
+	//		std::back_inserter(hamlet_encoded)
+	//	);
+	//	std::copy_if(hamlet_encoded.begin(),
+	//		hamlet_encoded.end(),
+	//		std::back_inserter(hamlet_encoded_only_alphabet_chars),
+	//		[&en](const char& ch) {
+	//		return en.contains(ch);
+	//	}
+	//	);
 
-	//		//}
-	//		
-	//		for_each_uniq_pair(text_occ.occurence[flat_idx].begin(),
-	//			text_occ.occurence[flat_idx].end(),
-	//		[&](int a, int b) {
-	//			distances_by_ngrams[ngram].insert(std::abs(b-a));
+	//	size_t max_key_length = 12;
+	//	std::cout << "Text length: " << min_guessable_text_length << endl;
+	//	size_t found_key_length1 = guess_key_length_ci(cout, hamlet_encoded_only_alphabet_chars, ci_en, max_key_length, en);
+	//	size_t found_key_length2 = guess_key_length_by_shifted_coincedences(cout, hamlet_encoded_only_alphabet_chars, max_key_length, en);
+	//	//std::cout << " Possible key lengths: " << found_key_length1 << " (most common diviser of the best CI) " << found_key_length2 << " (most common diviser of most coincedence periods)" << endl;
+	//	std::cout << " Possible key lengths: " << found_key_length1 << "  " << found_key_length2;
+
+	//	if (found_key_length1 && found_key_length2) {
+
+	//		size_t found_key_length = gcd(found_key_length1, found_key_length2);
+
+	//		//std::cout << "Key length: " << gcd(found_key_length1, found_key_length2) << " (most common diviser of posiible key 1 and possible key 2)" << endl;
+
+	//		if (found_key_length == hamlet_key.length()) {
+	//			std::cout << " found propper Key length = " << found_key_length;
+	//			key_found = true;
 	//		}
-	//		);
-	//		
-	//		/*
-	//		for_each_uniq_pair(distances_by_ngrams[ngram].begin(),
-	//			distances_by_ngrams[ngram].end(),
-	//			[&](int a, int b) {
-	//			gdc_distances_by_ngrams[ngram].insert(gcd(a,b));
-	//		}
-	//		);*/
-	//		for( auto d: distances_by_ngrams[ngram]){
-	//			//std::cout << d << ":" << divisors(d) << std::endl;
+	//		else {
+	//			std::cout << " found wrong Key length = " << found_key_length;
+
 	//		}
 	//	}
+	//	else {
+	//		std::cout << " cant guess Key length";
+	//	}
+
+	//	std::cout << endl;
 	//}
-	//std::cout << distances_by_ngrams << std::endl;
-	//std::cout << gdc_distances_by_ngrams << std::endl;
-	size_t max_key_length = 12;
-	auto best_ci_for_lang = [&ci_en]
-	(const double& l_ci, const double& r_ci) -> bool { 
-		return std::abs(l_ci  - ci_en) < std::abs(r_ci - ci_en);
-	};
-	std::map<double, int, decltype(best_ci_for_lang) > ci_interleaved_for_keys_lengths(best_ci_for_lang);
-
-	auto t0 = std::chrono::high_resolution_clock::now();
-	for (size_t key_length = 1; key_length <= max_key_length; ++key_length) {
-		double ci_avg = 0;
-		for (size_t shift = 0; shift < 1; ++shift) {
-			double ci = text_index_of_coincidence(count_letter_occurence(hamlet_encoded_only_alphabet_chars, key_length, shift, en));
-			ci_avg = (ci + (ci_avg*shift))/(shift+1);
-		}
-		ci_interleaved_for_keys_lengths[ci_avg] = key_length;
-	}
-	cout << "CI interleaved for keys lengths from 1 to " << max_key_length << endl;
-	double max_ci = max_element(ci_interleaved_for_keys_lengths.begin(), ci_interleaved_for_keys_lengths.end())->first;
-	for (const auto& kv : ci_interleaved_for_keys_lengths) {
-		cout << "\tfor each " <<setw(2) << kv.second << "-nth char CI: " << setw(14)<< kv.first << "( +/-"<< setw(14)<<abs(ci_en - kv.first) <<" from common) " << " [" << setw(10) << string(10 * (kv.first / max_ci), '|') << "]"<< endl;
-	}
-	int found_key_length1 = -1;
-	{
-		auto iter1 = ci_interleaved_for_keys_lengths.begin();
-		auto iter2 = ci_interleaved_for_keys_lengths.begin();
-		std::advance(iter2, 1);
-		for (; iter2 != ci_interleaved_for_keys_lengths.end(); ++iter1, ++iter2) {
-			if (iter1->second < iter2->second) {
-				found_key_length1 = iter1->second;
-				break;
-			}
-			int cd = gcd(iter1->second, iter2->second);
-			if (cd >= iter2->second) {
-				found_key_length1 = cd;
-				break;
-			}
-		}
-	}
-	shifted_coincedences_prop_list sh_c = count_shifted_letters_coincedences_prop_multi(hamlet_encoded_only_alphabet_chars, min(max_key_length*max_key_length, hamlet_encoded_only_alphabet_chars.length()), en);
-	std::cout << "Shifted text chars proportinal coincedences: "<< std::endl;
-
-	std::map<double, int, std::greater<double> > best_shifted_c;
-	double max_co_prop = *max_element(sh_c.begin() + 1, sh_c.end());
-	double tot = 0;
-	tot = accumulate(sh_c.begin() + 1, sh_c.end(), tot);
-	double wtot = 0;
-	wtot = accumulate(sh_c.begin() + 1, sh_c.end(), wtot, [max_co_prop](double v, double x) {return v + x * (x/ max_co_prop); });
-	double wsum = 0;
-	wsum = accumulate(sh_c.begin() + 1, sh_c.end(), wsum, [max_co_prop](double v, double x) {return v + (x / max_co_prop); });
-	double avg = tot / (sh_c.size()-1);
-	double wavg = wtot / wsum;//// tot / (sh_c.size() - 1);
-	std::vector<int> best_period;
-	for (int i = 1; i < sh_c.size(); ++i) {
-		double x = sh_c[i];
-		char symb = (x > wavg) ? '+' : '-';
-		int bar_length = 20;
-		cout << "\tfor shift " << setw(2) << i << ": " << setw(14) << x << " [" << setw(bar_length) << string(bar_length * (x / max_co_prop), symb) << "] " << endl;
-		//cout <<" [" << setw(10) << string(10 * ((x*x) / (max_co_prop*max_co_prop)), '|') << "]"<< endl;
-		//	cout << "x/max: " << setw(14) << x / max_co_prop << ", x/avg: " << setw(14) << x / avg << ", x>awg: " << (x > avg) << ", x/wavg: " << setw(14) << x / wavg << ", x>wawg: " << (x > wavg) << endl;
-		if (x > wavg) best_period.push_back(i);
-	}
-	cout << " avg: " << avg << endl;
-	cout << " wavg: " << wavg << endl;
-	int found_key_length2 = -1;
-	{
-		std::map<int, int> count_distances_between_best;
-		auto iter1 = best_period.begin();
-		auto iter2 = best_period.begin();
-		auto end = best_period.end();
-		//std::advance(iter1, 1);
-		std::advance(iter2, 1);
-		//std::advance(end, best_shifted_c);
-		for (; iter2 != end; ++iter1, ++iter2) {
-			count_distances_between_best[*iter2 - *iter1] += 1;
-		}
-		found_key_length2 = max_element(count_distances_between_best.begin(), count_distances_between_best.end(), [](const auto& kvl, const auto& kvr) {return kvl.second < kvr.second; })->first;
-	}
-    auto t1 = std::chrono::high_resolution_clock::now();
-
-
-	std::cout << "Possible key length: " << found_key_length1 << " (most common diviser of the best CI)" << endl;
-	std::cout << "Possible key length: " << found_key_length2 << " (most common diviser of most coincedence periods)" << endl;
-	std::cout << "Possible key length: " << gcd(found_key_length1, found_key_length2) << " (most common diviser of posiible key 1 and possible key 2)" << endl;
-	cout << "Calculation took " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() << std::endl;
-	/*for (auto p : ci_interleaved_for_keys_lengths) {
-		std::cout << "     " << std::setw(3) << p.second << ": " << p.first << std::endl;
-	}*/
 
 	return 0;
 }
