@@ -55,8 +55,9 @@ struct vigenere_cipher
 	}
 };
 
+
 template<class NextOpT>
-struct reset_case
+struct reset_case 
 {
 	NextOpT op;
 	char operator()(const char& ch) const
@@ -66,12 +67,10 @@ struct reset_case
 			char trans_ch = op(ch);
 			if (upper) {
 				return ::toupper(trans_ch);
-			}
-			else {
+			} else {
 				return ::tolower(trans_ch);
 			}
-		}
-		else {
+		} else {
 			return op(ch);
 		}
 	}
@@ -79,11 +78,11 @@ struct reset_case
 
 template<class NextOpT>
 reset_case<NextOpT> perserve_case(const NextOpT& op) {
-	return { op };
+	return {op};
 }
 
 template<typename IterInT, typename IterOutT>
-void encrypt_vigenere(std::string const& key, IterInT begin, IterInT end, IterOutT dst)
+void encrypt_vigenere(std::string const& key, IterInT begin, IterInT end, IterOutT dst )
 {
 	std::transform(begin, end, dst, perserve_case(vigenere_cipher<english_case_less>(english_case_less(), key)));
 }
@@ -93,3 +92,4 @@ void decrypt_vigenere(std::string const& key, IterInT begin, IterInT end, IterOu
 {
 	std::transform(begin, end, dst, perserve_case(vigenere_cipher<english_case_less>(english_case_less(), key, vigenere_cipher<english_case_less>::Decrypt)));
 }
+

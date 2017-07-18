@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "samsung_test_task", "samsung_test_task\samsung_test_task.vcxproj", "{FD47B054-211F-4E5B-BDB1-950803A4796F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vigenere_cipher", "vigenere_cipher\vigenere_cipher.vcxproj", "{2908E9E0-3EC8-4C45-927F-1446C6F4894B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{FD47B054-211F-4E5B-BDB1-950803A4796F}.Release|x64.Build.0 = Release|x64
 		{FD47B054-211F-4E5B-BDB1-950803A4796F}.Release|x86.ActiveCfg = Release|Win32
 		{FD47B054-211F-4E5B-BDB1-950803A4796F}.Release|x86.Build.0 = Release|Win32
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Debug|x64.ActiveCfg = Debug|x64
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Debug|x64.Build.0 = Debug|x64
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Debug|x86.ActiveCfg = Debug|Win32
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Debug|x86.Build.0 = Debug|Win32
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Release|x64.ActiveCfg = Release|x64
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Release|x64.Build.0 = Release|x64
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Release|x86.ActiveCfg = Release|Win32
+		{2908E9E0-3EC8-4C45-927F-1446C6F4894B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
