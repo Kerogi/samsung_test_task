@@ -659,19 +659,3 @@ StringT guess_key(std::ostream & os, const StringT& text, size_t key_length, con
 
 	return key;
 }
-/*
-template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
-double text_measure_of_roughness(const StringT& text, AlphabetT alphabet = AlphabetT())
-{
-	auto f1 = text_letter_freq(text, alphabet);
-	assert(alphabet.size() == f1.frequencies.size());
-	double mr = 0;
-	double Pavg = 1.0/alphabet.size();
-	for (const auto& lf : f1.frequencies) {
-		double ni = lf;
-		ci += (ni *(ni - 1.0)) / (N * (N - 1));
-	}
-
-	return ci;
-}
-*/
