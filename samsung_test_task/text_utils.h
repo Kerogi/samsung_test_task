@@ -611,11 +611,12 @@ StringT guess_key(std::ostream & os, const StringT& text, size_t key_length, con
 
 	StringT key(key_length, alphabet.letter_from_index(0));
 
-	auto chi_squared_stat =, [](double ci, double Ei) { 
+	// Chi-squared function witch tell how far one distribution from another
+	auto chi_squared_stat = [](double ci, double Ei) { 
 		// ci - actual number of letters, 
 		// Ei - expected (calculated based on expected_letters_frequecies param, and number of chars in coset(interleaved by key char pos) of text
 		return std::pow(ci - Ei, 2) / Ei;
-	}
+	};
 
 	// for each key char we calculate text stats by jumping over chars, and by starting from differen pos 
 	for (size_t key_char = 0; key_char < key_length; ++key_char) {
@@ -641,10 +642,8 @@ StringT guess_key(std::ostream & os, const StringT& text, size_t key_length, con
 		for (size_t shift = 1; shift < alphabet.size(); ++shift) {
 			auto shifted_range = cycle_range(1, shiftes_letter_occ.begin(), shiftes_letter_occ.begin() + shift, shiftes_letter_occ.end());
 			double fitness = 0;
-			fitness = std::inner_product(fitnes_range.first, fitnes_range.second, expected_letters_occ.begin(), fitness, std::plus<double>()
-				, [&](size_t fi, double Fi) {
-				return std::pow(fi - Fi, 2) / Fi;
-			});
+			fitness = std::inner_product(shifted_range.first, shifted_range.second, expected_letters_occ.begin(), fitness, std::plus<double>(),  chi_squared_stat);
+
 			ordered_fitness[fitness] = shift;
 
 			//auto mult_range = cycle_range(1, shiftes_letter_freq.begin(), shiftes_letter_freq.begin() + shift, shiftes_letter_freq.end());
