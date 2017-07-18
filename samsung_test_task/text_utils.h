@@ -135,8 +135,9 @@ struct english_case_less {
 	//}
 };
 
+using letter_coincedences_list = std::vector<int>;
 using ngram_frequensy_flat_list = std::vector<double>;
-using ngram_occurrence_flat_list = std::vector<unsigned int>;
+using ngram_occurrence_flat_list = std::vector<int>;
 using ngram_positions_flat_list = std::vector<std::vector<unsigned int>>;
 
 template<class AlphabetT>
@@ -158,7 +159,7 @@ struct sequence_occurence_flat {
 
 template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
 sequence_frequencies_flat<AlphabetT> count_letter_occurence(const StringT& text, size_t step = 1, size_t start_pos = 0, AlphabetT alphabet = AlphabetT()) {
-	std::vector<unsigned int> freq(alphabet.size());
+	ngram_occurrence_flat_list freq(alphabet.size());
 	size_t text_letters_count = 0;
 	size_t text_pos = start_pos;
 	size_t text_length = text.length();
@@ -211,13 +212,13 @@ count_letter_occurence_multi_step(const StringT& text, size_t max_step, size_t s
 	} 
 	return seq_freq;
 }
-using shifted_coincedences_list = std::vector<int>;
+
 template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
-shifted_coincedences_list
+letter_coincedences_list
 count_shifted_letters_coincedences_multi(const StringT& text, size_t max_step, AlphabetT alphabet = AlphabetT()) {
 	max_step = std::min(text.length(), max_step);
 	if (max_step == 1) return shifted_coincedences_list();
-	shifted_coincedences_list cl(max_step+1);
+	letter_coincedences_list cl(max_step+1);
 
 	size_t text_letters_count = 0;
 	int text_pos = 0;
@@ -307,129 +308,22 @@ sequence_frequencies_flat<AlphabetT> text_seq_freq(size_t seq_size, const String
 	return { alphabet , seq_size , freq, text_letters_count };
 }
 
-template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
-sequence_frequencies_flat<AlphabetT>  
-count_ngram_occurence(size_t ngram_size, const StringT& text, AlphabetT alphabet = AlphabetT()) {
-	ngram_size = std::min(ngram_size, text.length());
-	std::vector<unsigned int> counts(static_cast<size_t>(std::pow(alphabet.size(), ngram_size)));
-	std::deque<CharT> q;
-	size_t text_letters_count = 0;
-
-	for (const CharT& ch : text) {
-		if (alphabet.contains(ch)) {
-			q.push_front(ch);
-			text_letters_count += 1;
-
-			if (q.size() == ngram_size) {
-				size_t ngram_idx10 = 0;
-				size_t idx = 0;
-				for (const CharT& c : q) {
-					ngram_idx10 += alphabet.index_from_letter(c) * static_cast<size_t>(std::pow(alphabet.size(), idx++));
-				}
-				counts[ngram_idx10] += 1;
-				q.pop_back();
-			}
-		}
-		else {
-			q.clear();
-		}
-	}
-	return { alphabet , ngram_size , counts, text_letters_count };
-}
-
-template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
-sequence_occurence_flat<AlphabetT>  get_ngram_positions(size_t ngram_size, const StringT& text, AlphabetT alphabet = AlphabetT()) {
-	ngram_size = std::min(ngram_size, text.length());
-	//std::vector<unsigned int> possible_amount_of_occurence
-	std::vector<unsigned int> counts(static_cast<size_t>(std::pow(alphabet.size(), ngram_size)));
-	std::vector<std::vector<unsigned int>> occurencies(static_cast<size_t>(std::pow(alphabet.size(), ngram_size)));
-	std::deque<CharT> q;
-	size_t text_pos = 0;
-	size_t text_letters_count = 0;
-	for (const CharT& ch : text) {
-		if (alphabet.contains(ch)) {
-			q.push_front(ch);
-			++text_letters_count;
-			if (q.size() == ngram_size) {
-				size_t ngram_idx10 = 0;
-				size_t idx = 0;
-				for (const CharT& c : q) {
-					ngram_idx10 += alphabet.index_from_letter(c) * static_cast<size_t>(std::pow(alphabet.size(), idx++));
-				}
-				counts[ngram_idx10] += 1;
-				occurencies[ngram_idx10].push_back(text_pos);
-				q.pop_back();
-			}
-		}
-		else {
-			q.clear();
-		}
-		++text_pos;
-	}
-	return { alphabet , ngram_size , counts , occurencies, text_letters_count };
-}
-
-template<class AlphabetT = english_case_less, class StringT = typename AlphabetT::string_t, class CharT = typename StringT::value_type>
-std::map<unsigned int, std::vector<StringT> , std::greater<unsigned int> > 
-flat_freq_to_freq_dict(ngram_occurrence_flat_list flat_frequencies, size_t sequence_length, AlphabetT alphabet = english_case_less()) {
-	assert(flat_frequencies.size() == static_cast<size_t>(std::pow(alphabet.size(), sequence_length)));
-	size_t idx = 0;
-	std::map<unsigned int, std::vector<StringT>, std::greater<unsigned int> > frequency_map;
-	for (const unsigned int f : flat_frequencies) {
-		if (f > 0) {
-			size_t idx10 = idx;
-			StringT letter_idxs;
-			for (int n = sequence_length - 1; n >= 0; --n) {
-				size_t e = size_t(std::pow(alphabet.size(), n));
-				size_t letter_idx = idx10 / e;
-				CharT c = alphabet.letter_from_index(letter_idx);
-				letter_idxs += c;
-				idx10 = std::max(idx10 - letter_idx * e, 0U);
-			}
-			frequency_map[f].push_back(letter_idxs);
-		}
-		++idx;
-	}
-	return frequency_map;
-}
-
-
-template<class AlphabetT = english_case_less, class StringT = typename AlphabetT::string_t, class CharT = typename StringT::value_type>
-std::map<StringT, unsigned int> 
-flat_freq_to_letters_dict(ngram_occurrence_flat_list flat_frequencies, size_t sequence_length, AlphabetT alphabet = english_case_less()) {
-	assert(flat_frequencies.size() == static_cast<size_t>(std::pow(alphabet.size(), sequence_length)));
-	size_t idx = 0;
-	std::map<StringT, unsigned int> frequency_map;
-	for (const unsigned int f : flat_frequencies) {
-		if (f > 0) {
-			size_t idx10 = idx;
-			StringT letter_idxs;
-			for (int n = sequence_length - 1; n >= 0; --n) {
-				size_t e = size_t(std::pow(alphabet.size(), n));
-				size_t letter_idx = idx10 / e;
-				CharT c = alphabet.letter_from_index(letter_idx);
-				letter_idxs += c;
-				idx10 = std::max(idx10 - letter_idx * e, 0U);
-			}
-			frequency_map[letter_idxs] = f;
-		}
-		++idx;
-	}
-	return frequency_map;
-}
-
+// function to calculate texts index of coincidence 
+// 
 template< class AlphabetT = english_case_less >
 double text_index_of_coincidence(const sequence_frequencies_flat<AlphabetT> &text_stats)
 {
-	double ci = 0;
+	double IC = 0;
 	double N = text_stats.text_letters_count;
+	double c = 1;//text_stats.alphabet.size(); // normalization coof
 
 	for (const auto& lf : text_stats.frequencies) {
 		double ni = lf;
-		ci += (ni *(ni - 1.0)) / (N * (N - 1));
+		IC += (ni *(ni - 1.0));
 	}
+	IC = IC / (N * (N - 1) / c);
 
-	return ci;
+	return IC  ;
 }
 
 
@@ -538,123 +432,61 @@ size_t guess_key_length_by_shifted_coincedences(std::ostream & os, const StringT
 	return best_period;
 }
 
-template< class IterT >
-class cyclic_iterator: public std::iterator<
-	std::input_iterator_tag,   // iterator_category
-	typename IterT::value_type,
-	typename IterT::difference_type,
-	typename IterT::pointer,
-	typename IterT::reference>
-{
-	IterT it;
-	IterT begin;
-	IterT end;
-	size_t cycles;
 
-	cyclic_iterator(size_t cycles, IterT begin, IterT start, IterT end)
-		: it(start)
-		, begin(begin)
-		, end(end)
-		, cycles(cycles)
-	{}
-public:
-	cyclic_iterator() : it(), begin(), end(), cycles() {}
-	cyclic_iterator(const cyclic_iterator&) = default;
-	
-	cyclic_iterator &operator++() {
-		++it;
-		if (it == end) {
-			++cycles;
-			it = begin;
-		}
-		return *this;
-	} 
-	cyclic_iterator operator++(int) {
-		cyclic_iterator prev = *this;
-		++(*this);
-		return prev;
-	}
-
-	friend bool operator==(cyclic_iterator const &lhs, cyclic_iterator const &rhs)
-	{
-		return lhs.it == rhs.it && lhs.cycles == rhs.cycles;
-	} 
-
-	friend bool operator!=(cyclic_iterator const &lhs, cyclic_iterator const &rhs)
-	{
-		return lhs.it != rhs.it || lhs.cycles != rhs.cycles;
-	}
-	typename IterT::reference operator*() const {
-		return *it;
-	}
-	template< class IterU >
-	friend std::pair< cyclic_iterator<IterU>, cyclic_iterator<IterU> > cycle_range(size_t cycles, IterU begin, IterU start, IterU end);
-	
-	template< class IterU >
-	friend std::pair< cyclic_iterator<IterU>, cyclic_iterator<IterU> > cycle_range(size_t cycles, IterU begin, IterU end);
-};
-template< class IterT >
-std::pair< cyclic_iterator<IterT>, cyclic_iterator<IterT> > cycle_range(size_t cycles, IterT begin, IterT end)
-{
-	return std::make_pair(cyclic_iterator<IterT>(0, begin, begin, end), cyclic_iterator<IterT>(cycles, begin, begin, end));
-}
-
-template< class IterT > 
-std::pair< cyclic_iterator<IterT>, cyclic_iterator<IterT> > cycle_range(size_t cycles, IterT begin, IterT start, IterT end)
-{
-	return std::make_pair(cyclic_iterator<IterT>(0, begin, start, end), cyclic_iterator<IterT>(cycles, begin, start, end));
-}
 template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
 StringT guess_key(std::ostream & os, const StringT& text, size_t key_length, const std::vector<double>& expected_letters_frequecies, AlphabetT alphabet = AlphabetT())
 {
 	assert(expected_letters_frequecies.size() == alphabet.size());
 
-	StringT key(key_length, alphabet.letter_from_index(0));
+	StringT key(key_length, alphabet.letter_from_index(0)); //empty key
 
 	// Chi-squared function witch tell how far one distribution from another
 	auto chi_squared_stat = [](double ci, double Ei) { 
-		// ci - actual number of letters, 
+		// IC - actual number of letters, 
 		// Ei - expected (calculated based on expected_letters_frequecies param, and number of chars in coset(interleaved by key char pos) of text
 		return std::pow(ci - Ei, 2) / Ei;
 	};
 
 	// for each key char we calculate text stats by jumping over chars, and by starting from differen pos 
 	for (size_t key_char = 0; key_char < key_length; ++key_char) {
+		// a coset interleved by key length and key chars pos chipered message)
+		// message: hellowordl
+		// key length 3
+		// so there were 3 cosets for each key char
+		//       1: h  l  o  d : start at 0 jump 3
+		//       2:  e  o  r   : start at 1 jump 3
+		//       3:   l  w  l  : start at 2 jump 3
 		auto stats_interleaved_by_key_char = count_letter_occurence(text, //text to interleave
 			key_length, //the size of the jump
 			key_char, //start pos
 			alphabet);
 
 		ngram_occurrence_flat_list&  shiftes_letter_occ = stats_interleaved_by_key_char.frequencies; // for readenes
-		//ngram_frequensy_flat_list    shiftes_letter_freq(shiftes_letter_occ.size());
 		ngram_frequensy_flat_list    expected_letters_occ(shiftes_letter_occ.size());
 
 		//fill expected letters count in c
 		for (size_t i = 0; i < shiftes_letter_occ.size(); ++i)
 			expected_letters_occ[i] = expected_letters_frequecies[i] * stats_interleaved_by_key_char.text_letters_count;
 
-		//for (size_t i = 0; i < shiftes_letter_occ.size(); ++i) 
-		//	shiftes_letter_freq[i] = double(shiftes_letter_occ[i]) / double(stats_interleaved_by_key_char.text_letters_count);
-
 		std::map<double, size_t > ordered_fitness;
-		//std::map<double, size_t, std::greater<double> > ordered_mult;
 
 		for (size_t shift = 1; shift < alphabet.size(); ++shift) {
+			// using the special iterator to compare the coset in a thifted manner with the etalon letter stats
 			auto shifted_range = cycle_range(1, shiftes_letter_occ.begin(), shiftes_letter_occ.begin() + shift, shiftes_letter_occ.end());
+			// common stats    S = [S1,     S2, ... , Sn-2,   Sn-1,   Sn]
+			// shisftes coaset C = [C1+s, C2+s, ... ,   Cn,   Cs-1, Cs-2]
+ 			// where n = size of C and S, and  Cn/Sn = end , C1/S1 = begin
+			// and 0 < s < n  = shift
+			// calculate a sum of chi_squared_stat results on pairs of common stats el and corresponding shifted coset 
 			double fitness = 0;
 			fitness = std::inner_product(shifted_range.first, shifted_range.second, expected_letters_occ.begin(), fitness, std::plus<double>(),  chi_squared_stat);
 
+			//store fitness value with the shift witch used in cals
+			// in order from best at begining of container to worst at the end of container 
 			ordered_fitness[fitness] = shift;
-
-			//auto mult_range = cycle_range(1, shiftes_letter_freq.begin(), shiftes_letter_freq.begin() + shift, shiftes_letter_freq.end());
-			//double mult = 0;
-			//mult = std::inner_product(mult_range.first, mult_range.second, expected_letters_frequecies.begin(), mult);
-			//ordered_mult[mult] = shift;
-
-
 		}
-
-		key[key_char] = alphabet.letter_from_index(ordered_fitness.begin()->second);
+		// get the best scored by fintess shift and assign it to the sorrespondong key letter
+		key[key_char] = alphabet.letter_from_index(ordered_fitness.begin()->second); 
 	}
 
 	return key;
