@@ -113,10 +113,25 @@ int main(int argc, char* argv[])
 	bool res = false;
 
 	// if args more than 1 out debug info to cerr 
+	bool debug = false;
 	if (argc > 1) {
-
 		std::string arg(argv[1]);
-		
+		if (arg == "-d") {
+			debug = true;
+		} else {
+			std::cout << R"(Util for cracking chipherd text from input and in case of success output the key and decrypted by this key text.
+Usage:
+	vigenere_crack [-d]
+	d - show some debug stats
+
+inputs from stdin
+outputs to stdout
+	)" << std::endl;
+			return 1;
+		}
+	}
+
+	if (debug) {
 		res = dechipher_vigenere(12, 
 			std::istreambuf_iterator<char>(std::cin),
 			std::istreambuf_iterator<char>(),

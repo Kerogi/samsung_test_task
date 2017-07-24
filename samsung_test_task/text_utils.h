@@ -374,7 +374,7 @@ size_t guess_key_length_ci(std::ostream & os, const StringT& text, double etalon
 		[&distance_to_etalon_CI](const std::pair<double, int>& l, const std::pair<double, int>& r) {return distance_to_etalon_CI(l.first, r.first); })->first;
 	for (const auto& kv : ci_interleaved_for_keys_lengths) {
 		size_t bar_length = 20;
-		std::string bar(bar_length * (size_t)(std::abs(kv.first - etalon_CI) / lowest_diff_from_etalon_ci), '|');
+		std::string bar(size_t(double(bar_length) * (std::abs(kv.first - etalon_CI) / lowest_diff_from_etalon_ci)), '|');
 		os << "\t\tfor each " << std::setw(2) << kv.second << "-nth char CI: " << std::setw(14) << kv.first << "( +/-" << std::setw(14) << abs(etalon_CI - kv.first) << " from "<<std::setw(5)<<etalon_CI<<" common) " << " [" << std::setw(bar_length) << bar << "]" << std::endl;
 	}
 	size_t best_of_possible_keys = 0;
@@ -421,7 +421,7 @@ size_t guess_key_length_by_shifted_coincedences(std::ostream & os, const StringT
 		double x = sh_c[i];
 		char symb = (x > wavg) ? '+' : '-';
 		size_t bar_length = 20;
-		std::string bar(bar_length * (size_t)(x / max_co_prop), symb);
+		std::string bar(size_t(double(bar_length) * (x / max_co_prop)), symb);
 		os << "\t\tfor shift " << std::setw(2) << i << ": " << std::setw(14) << x << " [" << std::setw(bar_length) << bar << "] " << std::endl;
 		///cout <<" [" << std::setw(10) << string(10 * ((x*x) / (max_co_prop*max_co_prop)), '|') << "]"<< std::endl;
 		//	cout << "x/max: " << std::setw(14) << x / max_co_prop << ", x/avg: " << std::setw(14) << x / avg << ", x>awg: " << (x > avg) << ", x/wavg: " << std::setw(14) << x / wavg << ", x>wawg: " << (x > wavg) << std::endl;

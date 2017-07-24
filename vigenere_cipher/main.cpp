@@ -55,10 +55,11 @@ int main(int argc, char* argv[])
 			);
 		}
 	} else {
-		std::cout << R"(Usage:
-vigenere_cipher KEY [decrypt]
-where KEY - is encryption/decryption key
-decrypt - optional arg presence of whitch switches to decryption mode (any arg will accepted))
+		std::cout << R"(Util for encrypt/decrypt input text by given key using vigenere chipher and output
+Usage:
+	vigenere_cipher KEY [decrypt]
+	where KEY - is encryption/decryption key
+	decrypt - optional arg presence of whitch switches to decryption mode (any arg will accepted))
 
 inputs from stdin
 outputs to stdout
