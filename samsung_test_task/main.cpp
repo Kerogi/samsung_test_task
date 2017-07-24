@@ -12,23 +12,6 @@
 #include "lorem_ipsum.h"
 
 
-int gcd(int num1, int num2)
-{
-	bool found = false;
-	int test = 0;
-
-	if (std::abs(num1) < std::abs(num2))
-		test = std::abs(num1);
-	else
-	test = std::abs(num2);
-
-	while (num1%test != 0 || num2%test != 0)  //If the number divides evenly into both.
-	{
-		--test;
-	}
-
-	return test;
-}
 
 template<typename IterInT, typename IterOutT>
 bool dechipher_vigenere(size_t max_key_length, IterInT begin, IterInT end, IterOutT dst, std::ostream& os)
@@ -43,14 +26,14 @@ bool dechipher_vigenere(size_t max_key_length, IterInT begin, IterInT end, IterO
 		std::string common_text(common_english_text);
 		std::string common_text_only_alphabet;
 		std::copy_if(common_text.begin(), common_text.end(), std::back_inserter(common_text_only_alphabet), in_en_alphabet);
-		const double common_CI = text_index_of_coincidence(count_letter_occurence(common_text_only_alphabet, 1, 0, en));
 		auto common_letter_occurence = count_letter_occurence(common_text_only_alphabet, 1, 0, en);
+		const double common_CI = text_index_of_coincidence(common_letter_occurence);
 
 		std::vector<double>  common_letter_frequency(en.size());
 		double total_letters_freq = 0;
 
-		for (size_t i = 0; i < common_letter_occurence.frequencies.size(); ++i) {
-			common_letter_frequency[i] = double(common_letter_occurence.frequencies[i]) / double(common_letter_occurence.text_letters_count);
+		for (size_t i = 0; i < common_letter_occurence.occurence.size(); ++i) {
+			common_letter_frequency[i] = double(common_letter_occurence.occurence[i]) / double(common_letter_occurence.text_letters_count);
 			total_letters_freq += common_letter_frequency[i];
 		}
 	// END 
@@ -72,7 +55,7 @@ bool dechipher_vigenere(size_t max_key_length, IterInT begin, IterInT end, IterO
 		// filter the same lengths
 		key_lengths.insert(found_key_length1);
 		key_lengths.insert(found_key_length2);
-		key_lengths.insert(gcd(found_key_length1, found_key_length2));
+		key_lengths.insert(gcd((int)found_key_length1, (int)found_key_length2));
 		// filter the nonsence lengths 
 		key_lengths.erase(1);
 		key_lengths.erase(0);
@@ -128,8 +111,12 @@ int main(int argc, char* argv[])
 {
 	std::stringstream dummy_os;
 	bool res = false;
-	// if arga more than 1 out debug info to cerr 
+
+	// if args more than 1 out debug info to cerr 
 	if (argc > 1) {
+
+		std::string arg(argv[1]);
+		
 		res = dechipher_vigenere(12, 
 			std::istreambuf_iterator<char>(std::cin),
 			std::istreambuf_iterator<char>(),

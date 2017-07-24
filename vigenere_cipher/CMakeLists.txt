@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8.9)
+project (vigenere_cipher)
+set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Release)
+file(GLOB SOURCES "*.cpp")
+add_executable(vigenere_cipher ${SOURCES})

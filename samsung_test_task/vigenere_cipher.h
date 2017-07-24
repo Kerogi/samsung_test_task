@@ -66,12 +66,10 @@ struct reset_case
 			char trans_ch = op(ch);
 			if (upper) {
 				return ::toupper(trans_ch);
-			}
-			else {
+			} else {
 				return ::tolower(trans_ch);
 			}
-		}
-		else {
+		} else {
 			return op(ch);
 		}
 	}

@@ -142,6 +142,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="misc_utils.h" />
     <ClInclude Include="text_utils.h" />
     <ClInclude Include="vigenere_cipher.h" />
   </ItemGroup>

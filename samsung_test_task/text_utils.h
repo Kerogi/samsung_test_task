@@ -6,6 +6,26 @@
 #include <map>
 #include <deque>
 #include <functional>
+#include <iostream>
+#include <iomanip>
+
+inline int gcd(int num1, int num2)
+{
+	bool found = false;
+	int test = 0;
+
+	if (std::abs(num1) < std::abs(num2))
+		test = std::abs(num1);
+	else
+		test = std::abs(num2);
+
+	while (num1%test != 0 || num2%test != 0)  //If the number divides evenly into both.
+	{
+		--test;
+	}
+
+	return test;
+}
 
 //general case alphabet
 template<class StringT, class CharT = typename StringT::value_type>
@@ -49,7 +69,7 @@ struct custom_alphabet {
 			size_t letter_idx = idx10 / e;
 			char c = letter_from_index(letter_idx);
 			ngram += c;
-			idx10 = std::max(idx10 - letter_idx * e, 0U);
+			idx10 = std::max(idx10 - letter_idx * e, 0UL);
 		}
 		return ngram;
 	}
@@ -105,7 +125,7 @@ struct english_case_less {
 			size_t letter_idx = idx10 / e;
 			char c = letter_from_index(letter_idx);
 			ngram += c;
-			idx10 = std::max(idx10 - letter_idx * e, 0U);
+			idx10 = std::max(idx10 - letter_idx * e, size_t(0));
 		}
 		return ngram;
 	}
@@ -144,7 +164,7 @@ template<class AlphabetT>
 struct sequence_frequencies_flat {
 	AlphabetT alphabet;
 	size_t	  sequence_length;
-	ngram_occurrence_flat_list frequencies;
+	ngram_frequensy_flat_list frequencies;
 	size_t		text_letters_count;
 };
 
@@ -152,14 +172,14 @@ template<class AlphabetT>
 struct sequence_occurence_flat {
 	AlphabetT alphabet;
 	size_t	  sequence_length;
-	std::vector<unsigned int> frequencies;
-	std::vector<std::vector<unsigned int>> occurence;
+	//std::vector<unsigned int> frequencies;
+	ngram_occurrence_flat_list occurence;
 	size_t		text_letters_count;
 };
 
 template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
-sequence_frequencies_flat<AlphabetT> count_letter_occurence(const StringT& text, size_t step = 1, size_t start_pos = 0, AlphabetT alphabet = AlphabetT()) {
-	ngram_occurrence_flat_list freq(alphabet.size());
+sequence_occurence_flat<AlphabetT> count_letter_occurence(const StringT& text, size_t step = 1, size_t start_pos = 0, AlphabetT alphabet = AlphabetT()) {
+	ngram_occurrence_flat_list occ(alphabet.size());
 	size_t text_letters_count = 0;
 	size_t text_pos = start_pos;
 	size_t text_length = text.length();
@@ -167,18 +187,22 @@ sequence_frequencies_flat<AlphabetT> count_letter_occurence(const StringT& text,
 		const CharT& ch = text[text_pos];
 		if (alphabet.contains(ch)) {
 			text_letters_count += 1;
-			freq[alphabet.index_from_letter(ch)] += 1;
+			occ[alphabet.index_from_letter(ch)] += 1;
 		}
 		text_pos += step;
 	} while (text_pos < text_length);
-	return { alphabet , 1 , freq, text_letters_count };
+	return { alphabet , 1 , occ, text_letters_count };
 }
 
 template<class StringT, class CharT = typename StringT::value_type, class AlphabetT = english_case_less >
 sequence_frequencies_flat<AlphabetT> count_letter_frequencies(const StringT& text, size_t step = 1, size_t start_pos = 0, AlphabetT alphabet = AlphabetT()) {
 	auto res = count_letter_occurence(text, step, start_pos, alphabet);
-	for(const )
-	return { alphabet , 1 , freq, text_letters_count };
+	ngram_frequensy_flat_list freq(alphabet.size());
+	size_t letter_index = 0;
+	for (const auto& occ : res.occurence) {
+		freq[letter_index++] = double(occ) / res.text_letters_count;
+	}
+	return { alphabet , 1 , freq,  res.text_letters_count };
 }
 
 
@@ -217,7 +241,7 @@ template<class StringT, class CharT = typename StringT::value_type, class Alphab
 letter_coincedences_list
 count_shifted_letters_coincedences_multi(const StringT& text, size_t max_step, AlphabetT alphabet = AlphabetT()) {
 	max_step = std::min(text.length(), max_step);
-	if (max_step == 1) return shifted_coincedences_list();
+	if (max_step == 1) return letter_coincedences_list();
 	letter_coincedences_list cl(max_step+1);
 
 	size_t text_letters_count = 0;
@@ -311,13 +335,13 @@ sequence_frequencies_flat<AlphabetT> text_seq_freq(size_t seq_size, const String
 // function to calculate texts index of coincidence 
 // 
 template< class AlphabetT = english_case_less >
-double text_index_of_coincidence(const sequence_frequencies_flat<AlphabetT> &text_stats)
+double text_index_of_coincidence(const sequence_occurence_flat<AlphabetT> &text_stats)
 {
 	double IC = 0;
 	double N = text_stats.text_letters_count;
 	double c = 1;//text_stats.alphabet.size(); // normalization coof
 
-	for (const auto& lf : text_stats.frequencies) {
+	for (const auto& lf : text_stats.occurence) {
 		double ni = lf;
 		IC += (ni *(ni - 1.0));
 	}
@@ -350,7 +374,7 @@ size_t guess_key_length_ci(std::ostream & os, const StringT& text, double etalon
 		[&distance_to_etalon_CI](const std::pair<double, int>& l, const std::pair<double, int>& r) {return distance_to_etalon_CI(l.first, r.first); })->first;
 	for (const auto& kv : ci_interleaved_for_keys_lengths) {
 		size_t bar_length = 20;
-		std::string bar(bar_length * (std::abs(kv.first - etalon_CI) / lowest_diff_from_etalon_ci), '|');
+		std::string bar(bar_length * (size_t)(std::abs(kv.first - etalon_CI) / lowest_diff_from_etalon_ci), '|');
 		os << "\t\tfor each " << std::setw(2) << kv.second << "-nth char CI: " << std::setw(14) << kv.first << "( +/-" << std::setw(14) << abs(etalon_CI - kv.first) << " from "<<std::setw(5)<<etalon_CI<<" common) " << " [" << std::setw(bar_length) << bar << "]" << std::endl;
 	}
 	size_t best_of_possible_keys = 0;
@@ -393,11 +417,11 @@ size_t guess_key_length_by_shifted_coincedences(std::ostream & os, const StringT
 
 	double wavg = wtot / wsum; 
 	std::vector<int> most_significant_indeces;
-	for (int i = 1; i < sh_c.size(); ++i) {
+	for (int i = 1; i < (int)sh_c.size(); ++i) {
 		double x = sh_c[i];
 		char symb = (x > wavg) ? '+' : '-';
 		size_t bar_length = 20;
-		std::string bar(bar_length * (x / max_co_prop), symb);
+		std::string bar(bar_length * (size_t)(x / max_co_prop), symb);
 		os << "\t\tfor shift " << std::setw(2) << i << ": " << std::setw(14) << x << " [" << std::setw(bar_length) << bar << "] " << std::endl;
 		///cout <<" [" << std::setw(10) << string(10 * ((x*x) / (max_co_prop*max_co_prop)), '|') << "]"<< std::endl;
 		//	cout << "x/max: " << std::setw(14) << x / max_co_prop << ", x/avg: " << std::setw(14) << x / avg << ", x>awg: " << (x > avg) << ", x/wavg: " << std::setw(14) << x / wavg << ", x>wawg: " << (x > wavg) << std::endl;
@@ -427,7 +451,7 @@ size_t guess_key_length_by_shifted_coincedences(std::ostream & os, const StringT
 		os << "\t\t distance: " << kv.first <<" found " << kv.second << " times" << std::endl;
 	}
 
-	best_period = std::max_element(count_distances_between_best.begin(), count_distances_between_best.end(), [](const auto& kvl, const auto& kvr) {return kvl.second < kvr.second; })->first;
+	best_period = std::max_element(count_distances_between_best.begin(), count_distances_between_best.end(), [](const std::pair<int, int>& kvl, const std::pair<int, int>& kvr) {return kvl.second < kvr.second; })->first;
 	os << "\tMost common distance(period): " <<best_period<< std::endl;
 	return best_period;
 }
@@ -461,7 +485,7 @@ StringT guess_key(std::ostream & os, const StringT& text, size_t key_length, con
 			key_char, //start pos
 			alphabet);
 
-		ngram_occurrence_flat_list&  shiftes_letter_occ = stats_interleaved_by_key_char.frequencies; // for readenes
+		ngram_occurrence_flat_list&  shiftes_letter_occ = stats_interleaved_by_key_char.occurence; // for readenes
 		ngram_frequensy_flat_list    expected_letters_occ(shiftes_letter_occ.size());
 
 		//fill expected letters count in c

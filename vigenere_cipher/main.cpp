@@ -1,7 +1,9 @@
 #include <iostream> 
 #include <iterator>
 
+#include "misc_utils.h"
 #include "vigenere_cipher.h"
+#include "text_utils.h"
 
 void test_vigenere()
 {
@@ -28,7 +30,6 @@ void test_vigenere()
 	std::cout << "   actual encoded text '" << act_encoded_text << "'" << std::endl;
 	std::cout << "   actual decoded text '" << act_decoded_text << "'" << std::endl;
 
-
 }
 
 
@@ -53,5 +54,14 @@ int main(int argc, char* argv[])
 				std::ostream_iterator<char>(std::cout)
 			);
 		}
+	} else {
+		std::cout << R"(Usage:
+vigenere_cipher KEY [decrypt]
+where KEY - is encryption/decryption key
+decrypt - optional arg presence of whitch switches to decryption mode (any arg will accepted))
+
+inputs from stdin
+outputs to stdout
+)" << std::endl;
 	}
 }

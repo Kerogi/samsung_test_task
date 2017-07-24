@@ -259,3 +259,22 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/vigenere_cipher/CMakeFiles
+/vigenere_cipher/CMakeCache.txt
+/vigenere_cipher/CMakeFiles
+/vigenere_cipher/cmake_install.cmake
+/vigenere_cipher/Makefile
+/vigenere_cipher/vigenere_cipher
+/vigenere_cipher/vigenere_chipher
+/build
+/CMakeFiles
+/samsung_test_task/CMakeFiles
+/samsung_test_task/vigenere_crack
+/samsung_test_task/text_utils.h.bak
+/samsung_test_task/Makefile
+/samsung_test_task/cmake_install.cmake
+/samsung_test_task/CMakeCache.txt
+/vigenere_cipher/misc_utils.h.bak
+/Makefile
+/cmake_install.cmake
+/CMakeCache.txt

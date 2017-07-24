@@ -141,7 +141,6 @@
   <ItemGroup>
     <ClCompile Include="lorem_ipsum.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="vigenere_cipher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lorem_ipsum.h" />
